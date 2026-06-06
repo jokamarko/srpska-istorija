@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)file:///C:/Users/Marko/Downloads/timeline_nemanjica_6.html -->
+<html lang="sr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Loza Nemanjića — Vremenska Linija</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+  background: #dce8f5; min-height: 100vh;
+  overflow-x: hidden; user-select: none;
+}
+#page { display: flex; flex-direction: column; height: 100vh; }
+
+/* ── TOPBAR ── */
+#topbar {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(90deg, #7a0a0a 0%, #a01010 40%, #7a0a0a 100%);
+  padding: 6px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); z-index: 50; min-height: 52px;
+}
+#topbar-left { display: flex; align-items: center; gap: 12px; }
+#topbar-coa { height: 40px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+#topbar-titles h1 { color: #ffd966; font-size: 16px; font-weight: 700; letter-spacing: 1px; font-family: 'Palatino Linotype', serif; }
+#topbar-titles h2 { color: #f0c8a0; font-size: 10px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; }
+.stats { display: flex; gap: 10px; align-items: center; }
+.stat { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,220,100,0.3); border-radius: 6px; padding: 3px 12px; color: #fff; font-size: 11px; }
+.stat b { color: #ffd966; font-size: 14px; }
+#back-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,220,100,0.3); border-radius: 6px; padding: 4px 12px; color: #ffd966; font-size: 11px; cursor: pointer; text-decoration: none; font-family: inherit; }
+#back-btn:hover { background: rgba(0,0,0,0.5); }
+
+/* ── MAIN ── */
+#main { flex: 1; display: flex; overflow: hidden; }
+
+/* ── SIDE PANELS ── */
+.side-panel {
+  flex-shrink: 0; width: 160px;
+  background: linear-gradient(180deg, #c8dcf0 0%, #b8ccde 100%);
+  padding: 8px 6px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 5px;
+}
+#panel-left  { border-right: 2px solid #8aafcf; }
+#panel-right { border-left:  2px solid #8aafcf; }
+.panel-title {
+  font-size: 9px; color: #1e3a5a; font-weight: 700; text-align: center; margin-bottom: 3px;
+  text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #8aafcf; padding-bottom: 4px;
+}
+
+/* ── SCROLL AREA ── */
+#timeline-scroll { flex: 1; overflow: auto; background: #dce8f5; }
+#timeline-wrap { padding: 16px 24px 24px; min-width: 900px; }
+
+/* ── CENTURY BLOCK ── */
+.century-block {
+  margin-bottom: 28px;
+  background: #e8f2fc;
+  border-radius: 10px;
+  border: 1px solid #b0c8e0;
+  padding: 0;
+  overflow: visible;
+  position: relative;
+}
+.century-label {
+  font-size: 10px; font-weight: 700; color: #2c4a6a;
+  padding: 4px 12px; letter-spacing: 1px; text-transform: uppercase;
+  background: #c8dcf0; border-radius: 10px 10px 0 0;
+  border-bottom: 1px solid #b0c8e0;
+}
+
+/* ── INNER TIMELINE ── */
+.tl-inner { position: relative; padding: 0 40px; }
+
+/* events zone */
+.events-zone {
+  position: relative;
+  height: 210px;
+}
+
+/* axis row */
+.axis-row {
+  position: relative;
+  height: 32px;
+  display: flex; align-items: center;
+}
+.axis-line {
+  position: absolute; left: 0; right: 0;
+  height: 3px; background: #4488bb; border-radius: 2px; top: 50%;
+}
+.year-marker {
+  position: absolute; display: flex; flex-direction: column; align-items: center;
+  transform: translateX(-50%);
+}
+.year-tick { width: 2px; height: 12px; background: #4488bb; }
+.year-num  { font-size: 14px; font-weight: 700; color: #2c4a6a; margin-top: 2px; }
+
+/* rulers zone */
+.rulers-zone {
+  position: relative;
+  padding: 6px 0 8px;
+}
+.ruler-row-wrap { position: relative; height: 30px; margin-bottom: 3px; }
+
+/* ── RULER SLOT ── */
+.ruler-slot {
+  position: absolute; height: 26px; top: 2px;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; text-align: center; padding: 0 4px;
+  white-space: nowrap; overflow: hidden;
+  cursor: default; transition: background 0.2s, border-color 0.2s;
+}
+.ruler-slot.empty {
+  background: #e4f0fa; border: 2px dashed #6aaad8; color: #7aaSb8;
+  font-size: 10px; color: #5a8ab0;
+}
+.ruler-slot.empty.drag-over { background: #b0d4f0; border-color: #2a7ac0; border-style: solid; }
+.ruler-slot.wrong-flash { background: #ffe0e0 !important; border-color: #e04040 !important; }
+
+/* filled ruler colours */
+.ruler-slot.nemanjic  { background: linear-gradient(90deg,#f9b89a,#f0906a); border: 1.5px solid #c07050; color: #4a1a08; }
+.ruler-slot.sava      { background: linear-gradient(90deg,#c8e890,#88cc44); border: 1.5px solid #4a8020; color: #1a3808; }
+.ruler-slot.vukanovic {
+  background: repeating-linear-gradient(45deg,#f9c87a,#f9c87a 6px,#f0a830 6px,#f0a830 12px);
+  border: 1.5px solid #c08020; color: #4a2808;
+}
+.ruler-slot.lazar { background: linear-gradient(90deg,#90b8f0,#5080d0); border: 1.5px solid #305090; color: #0a1840; }
+
+/* open left/right edges for split bars */
+.ruler-slot.open-right { border-right: none; border-radius: 6px 0 0 6px; }
+.ruler-slot.open-left  { border-left:  none; border-radius: 0 6px 6px 0; }
+
+.ruler-slot.pop-in { animation: popIn 0.3s ease; }
+@keyframes popIn { 0%{opacity:0.3;transform:scaleY(0.6);} 100%{opacity:1;transform:scaleY(1);} }
+
+.sava-note {
+  font-size: 8px; color: #1a4808; opacity: 0.8;
+  margin-left: 3px; font-weight: 400;
+}
+
+/* ── EVENT SLOT ── */
+.event-col {
+  position: absolute; bottom: 0;
+  display: flex; flex-direction: column; align-items: center;
+  transform: translateX(-50%);
+  cursor: default;
+  /* wider invisible hit area so overlapping columns are easier to target */
+  padding: 0 6px;
+}
+.event-box {
+  width: 88px; min-height: 34px;
+  border-radius: 6px; border: 2px dashed #6aaad8;
+  background: #e4f0fa; color: #5a8ab0;
+  font-size: 9.5px; font-weight: 600; text-align: center;
+  display: flex; align-items: center; justify-content: center;
+  padding: 3px 5px; line-height: 1.3; cursor: default;
+  transition: background 0.2s;
+}
+.event-box.drag-over { background: #b0d4f0; border-color: #2a7ac0; border-style: solid; }
+.event-box.filled    { background: #d0e8f8; border: 1.5px solid #4488bb; color: #1a3a5a; }
+.event-box.wrong-flash { background: #ffe0e0 !important; border-color: #e04040 !important; }
+.event-box.pop-in { animation: popIn 0.3s ease; }
+.event-line { width: 2px; background: #4488bb; pointer-events: none; }
+.event-dot  { width: 8px; height: 8px; border-radius: 50%; background: #4488bb; flex-shrink: 0; pointer-events: none; }
+
+/* ── NAME CARDS ── */
+.name-card {
+  border-radius: 7px; padding: 5px 7px;
+  font-size: 10.5px; font-weight: 700;
+  cursor: grab; text-align: center; line-height: 1.3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.13);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.name-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.name-card.dragging { opacity: 0.3; cursor: grabbing; }
+.ruler-card { background: linear-gradient(160deg,#fff8f0,#ffe4c8); border: 1.5px solid #c07050; color: #4a2010; }
+.event-card { background: linear-gradient(160deg,#f0f8ff,#d8ecff); border: 1.5px solid #4488bb; color: #1a3a5a; }
+
+/* ── GHOST ── */
+#ghost {
+  position: fixed; pointer-events: none; z-index: 9999;
+  border: 2px solid #d08030; border-radius: 7px; padding: 4px 10px;
+  font-size: 11px; font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35); display: none;
+  white-space: nowrap; transform: translate(-50%,-50%);
+  font-family: 'Calibri','Segoe UI',sans-serif;
+}
+#ghost.ghost-ruler { background: linear-gradient(160deg,#fff8f0,#ffe4c8); color: #4a2010; }
+#ghost.ghost-event { background: linear-gradient(160deg,#f0f8ff,#d8ecff); color: #1a3a5a; }
+
+/* ── LEGEND ── */
+#legend {
+  flex-shrink: 0; display: flex; gap: 14px; align-items: center; justify-content: center;
+  padding: 5px 16px; flex-wrap: wrap;
+  background: linear-gradient(90deg,#7a0a0a,#a01010,#7a0a0a);
+  font-size: 10px; color: #f0d0a0;
+}
+.leg-item { display: flex; align-items: center; gap: 4px; }
+.leg-swatch { width: 16px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+.leg-swatch.nemanjic  { background: #f0906a; border: 1px solid #c07050; }
+.leg-swatch.sava      { background: #88cc44; border: 1px solid #4a8020; }
+.leg-swatch.vukanovic { background: repeating-linear-gradient(45deg,#f9c87a,#f9c87a 3px,#f0a830 3px,#f0a830 6px); border: 1px solid #c08020; }
+.leg-swatch.lazar     { background: #5080d0; border: 1px solid #305090; }
+.leg-swatch.event     { background: #d0e8f8; border: 1px solid #4488bb; }
+
+/* ── RESULT ── */
+#result-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:200; align-items:center; justify-content:center; }
+#result-overlay.show { display:flex; }
+#result-box { background:#f5ede0; border:3px solid #8a0a0a; border-radius:16px; padding:30px 56px; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.5); max-width:440px; }
+#result-coa { display:block; margin:0 auto 10px; width:60px; height:60px; object-fit:contain; }
+#result-box h2 { color:#8a0a0a; font-size:22px; margin-bottom:4px; font-family:'Palatino Linotype',serif; }
+.big-pct { font-size:70px; font-weight:700; color:#8a0a0a; line-height:1; margin:6px 0; }
+.detail  { color:#4a3010; font-size:13px; margin-bottom:4px; }
+.msg     { color:#2c5f8a; font-size:15px; font-weight:700; margin-bottom:22px; }
+.result-btns { display:flex; gap:14px; justify-content:center; }
+.result-btns button { border:none; border-radius:8px; padding:11px 28px; font-size:14px; cursor:pointer; font-family:inherit; font-weight:700; }
+#btn-again { background:#8a0a0a; color:#ffd966; }
+#btn-close { background:#3a3a3a; color:#fff; }
+
+::-webkit-scrollbar { width:7px; height:7px; }
+::-webkit-scrollbar-track { background:#c8dcf0; }
+::-webkit-scrollbar-thumb { background:#6aaad8; border-radius:4px; }
+</style>
+</head>
+<body>
+<div id="page">
+
+<div id="topbar">
+  <div id="topbar-left">
+    <img id="topbar-coa" src="file:///C:/Users/Marko/Downloads/grb_nemanjica.png" alt="" style="height:40px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">
+    <div id="topbar-titles">
+      <h1>Loza Nemanjića — Vremenska Linija</h1>
+      <h2>Istorijska igra — Srednji vek Srbije</h2>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat">Postavljeno: <b id="pv">0 / 28</b>&nbsp;/&nbsp;28</div>
+    <div class="stat">Trenutni rezultat: <b id="sv">100%</b></div>
+    <a href="file:///C:/Users/Marko/index.html" id="back-btn">← Nazad</a>
+  </div>
+</div>
+
+<div id="main">
+  <div class="side-panel" id="panel-left">
+    <div class="panel-title">⚔ Vladari</div>
+  <div class="name-card ruler-card" id="card-decanski" draggable="true">Stefan Dečanski</div><div class="name-card ruler-card" id="card-lazar" draggable="true">Knez Lazar Hrebeljanović</div><div class="name-card ruler-card" id="card-milutin" draggable="true">Stefan Milutin</div><div class="name-card ruler-card" id="card-radoslav" draggable="true">Stefan Radoslav</div><div class="name-card ruler-card" id="card-prvovencan" draggable="true">Stefan Prvovenčani</div><div class="name-card ruler-card" id="card-uros5" draggable="true">Stefan Uroš V Nejaki</div><div class="name-card ruler-card" id="card-dusan" draggable="true">Stefan Dušan</div><div class="name-card ruler-card" id="card-vukanovic" draggable="true">Vukanovići</div><div class="name-card ruler-card" id="card-nemanja" draggable="true">Stefan Nemanja</div><div class="name-card ruler-card" id="card-uros1" draggable="true">Stefan Uroš I</div><div class="name-card ruler-card" id="card-dragutin" draggable="true">Stefan Dragutin</div><div class="name-card ruler-card" id="card-vladislav" draggable="true">Stefan Vladislav</div><div class="name-card ruler-card" id="card-sava" draggable="true">Rastko Nem. / Sveti Sava</div></div>
+  <div id="timeline-scroll">
+    <div id="timeline-wrap"><div class="century-block" id="band-b1"><div class="century-label">1100 – 1200</div><div class="tl-inner"><div class="events-zone" id="evzone-b1"><div class="event-col" data-evid="ev_pantina" style="left: 68%; height: 157px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_pantina" style="pointer-events: auto; position: relative; z-index: 5;">1168</div><div class="event-line" style="height: 111px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_barbarosa" style="left: 89%; height: 50px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_barbarosa" style="pointer-events: auto; position: relative; z-index: 5;">1189</div><div class="event-line" style="height: 4px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_morave" style="left: 90%; height: 157px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_morave" style="pointer-events: auto; position: relative; z-index: 5;">1190</div><div class="event-line" style="height: 111px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_atos" style="left: 92%; height: 102px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_atos" style="pointer-events: auto; position: relative; z-index: 5;">1192</div><div class="event-line" style="height: 56px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_hilandar" style="left: 98%; height: 50px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_hilandar" style="pointer-events: auto; position: relative; z-index: 5;">1198</div><div class="event-line" style="height: 4px;"></div><div class="event-dot"></div></div></div><div class="axis-row"><div class="axis-line"></div><div class="year-marker" style="left: 0%;"><div class="year-tick"></div><div class="year-num">1100</div></div><div class="year-marker" style="left: 50%;"><div class="year-tick"></div><div class="year-num">1150</div></div><div class="year-marker" style="left: 100%;"><div class="year-tick"></div><div class="year-num">1200</div></div></div><div class="rulers-zone" id="rlzone-b1"><div class="ruler-row-wrap" id="rlrow-b1-0"><div class="ruler-slot empty" id="rslot-vukanovic-b1" style="left: 0%; width: 66%;">1083 – 1166</div><div class="ruler-slot empty" id="rslot-nemanja-b1" style="left: 66%; width: 30%;">1166 – 1196</div><div class="ruler-slot empty" id="rslot-prvovencan-b1" style="left: 96%; width: 4%;">1196 – 1228</div></div><div class="ruler-row-wrap" id="rlrow-b1-1"><div class="ruler-slot empty" id="rslot-sava-b1" style="left: 75%; width: 25%;">1175 – 1236</div></div></div></div></div><div class="century-block" id="band-b2"><div class="century-label">1200 – 1300</div><div class="tl-inner"><div class="events-zone" id="evzone-b2"><div class="event-col" data-evid="ev_vukan" style="left: 2%; height: 157px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_vukan" style="pointer-events: auto; position: relative; z-index: 5;">1202</div><div class="event-line" style="height: 111px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_kruna" style="left: 17%; height: 50px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_kruna" style="pointer-events: auto; position: relative; z-index: 5;">1217</div><div class="event-line" style="height: 4px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_autokef" style="left: 19%; height: 157px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_autokef" style="pointer-events: auto; position: relative; z-index: 5;">1219</div><div class="event-line" style="height: 111px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_dezevo" style="left: 82%; height: 102px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_dezevo" style="pointer-events: auto; position: relative; z-index: 5;">1282</div><div class="event-line" style="height: 56px;"></div><div class="event-dot"></div></div></div><div class="axis-row"><div class="axis-line"></div><div class="year-marker" style="left: 0%;"><div class="year-tick"></div><div class="year-num">1200</div></div><div class="year-marker" style="left: 50%;"><div class="year-tick"></div><div class="year-num">1250</div></div><div class="year-marker" style="left: 100%;"><div class="year-tick"></div><div class="year-num">1300</div></div></div><div class="rulers-zone" id="rlzone-b2"><div class="ruler-row-wrap" id="rlrow-b2-0"><div class="ruler-slot empty" id="rslot-prvovencan-b2" style="left: 0%; width: 28%;">1196 – 1228</div><div class="ruler-slot empty" id="rslot-radoslav-b2" style="left: 28%; width: 6%;">1228 – 1234</div><div class="ruler-slot empty" id="rslot-vladislav-b2" style="left: 34%; width: 9%;">1234 – 1243</div><div class="ruler-slot empty" id="rslot-uros1-b2" style="left: 43%; width: 33%;">1243 – 1276</div><div class="ruler-slot empty" id="rslot-dragutin-b2" style="left: 76%; width: 6%;">1276 – 1282</div><div class="ruler-slot empty" id="rslot-milutin-b2" style="left: 82%; width: 18%;">1282 – 1321</div></div><div class="ruler-row-wrap" id="rlrow-b2-1"><div class="ruler-slot empty" id="rslot-sava-b2" style="left: 0%; width: 36%;">1175 – 1236</div></div></div></div></div><div class="century-block" id="band-b3"><div class="century-label">1300 – 1400</div><div class="tl-inner"><div class="events-zone" id="evzone-b3"><div class="event-col" data-evid="ev_velbuzdz" style="left: 30%; height: 50px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_velbuzdz" style="pointer-events: auto; position: relative; z-index: 5;">1330</div><div class="event-line" style="height: 4px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_zvecan" style="left: 31%; height: 157px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_zvecan" style="pointer-events: auto; position: relative; z-index: 5;">1331</div><div class="event-line" style="height: 111px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_car" style="left: 45%; height: 50px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_car" style="pointer-events: auto; position: relative; z-index: 5;">1345</div><div class="event-line" style="height: 4px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_zakonik" style="left: 49%; height: 157px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_zakonik" style="pointer-events: auto; position: relative; z-index: 5;">1349</div><div class="event-line" style="height: 111px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_marica" style="left: 71%; height: 102px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_marica" style="pointer-events: auto; position: relative; z-index: 5;">1371</div><div class="event-line" style="height: 56px;"></div><div class="event-dot"></div></div><div class="event-col" data-evid="ev_kosovo" style="left: 89%; height: 50px; z-index: 3; pointer-events: none;"><div class="event-box" id="eslot-ev_kosovo" style="pointer-events: auto; position: relative; z-index: 5;">1389</div><div class="event-line" style="height: 4px;"></div><div class="event-dot"></div></div></div><div class="axis-row"><div class="axis-line"></div><div class="year-marker" style="left: 0%;"><div class="year-tick"></div><div class="year-num">1300</div></div><div class="year-marker" style="left: 50%;"><div class="year-tick"></div><div class="year-num">1350</div></div><div class="year-marker" style="left: 100%;"><div class="year-tick"></div><div class="year-num">1400</div></div></div><div class="rulers-zone" id="rlzone-b3"><div class="ruler-row-wrap" id="rlrow-b3-0"><div class="ruler-slot empty" id="rslot-milutin-b3" style="left: 0%; width: 21%;">1282 – 1321</div><div class="ruler-slot empty" id="rslot-decanski-b3" style="left: 21%; width: 10%;">1321 – 1331</div><div class="ruler-slot empty" id="rslot-dusan-b3" style="left: 31%; width: 24%;">1331 – 1355</div><div class="ruler-slot empty" id="rslot-uros5-b3" style="left: 55%; width: 16%;">1355 – 1371</div><div class="ruler-slot empty" id="rslot-lazar-b3" style="left: 71%; width: 18%;">1371 – 1389</div></div></div></div></div></div>
+  </div>
+  <div class="side-panel" id="panel-right">
+    <div class="panel-title">📅 Događaji</div>
+  <div class="name-card event-card" id="card-ev_kosovo" draggable="true">Kosovska bitka</div><div class="name-card event-card" id="card-ev_vukan" draggable="true">Rat Vukana i Stefana</div><div class="name-card event-card" id="card-ev_velbuzdz" draggable="true">Bitka kod Velbužda</div><div class="name-card event-card" id="card-ev_car" draggable="true">Proglašenje za cara</div><div class="name-card event-card" id="card-ev_dezevo" draggable="true">Sabor u Deževu</div><div class="name-card event-card" id="card-ev_barbarosa" draggable="true">Fridrih Barbarosa</div><div class="name-card event-card" id="card-ev_pantina" draggable="true">Bitka kod Pantina</div><div class="name-card event-card" id="card-ev_zakonik" draggable="true">Dušanov zakonik</div><div class="name-card event-card" id="card-ev_marica" draggable="true">Marička bitka</div><div class="name-card event-card" id="card-ev_kruna" draggable="true">Krunisanje prvog kralja Srbije</div><div class="name-card event-card" id="card-ev_morave" draggable="true">Bitka kod Morave</div><div class="name-card event-card" id="card-ev_atos" draggable="true">Odlazak na Atos</div><div class="name-card event-card" id="card-ev_autokef" draggable="true">Autokefalnost / Arhiepiskopija</div><div class="name-card event-card" id="card-ev_hilandar" draggable="true">Osnivanje Hilandara</div><div class="name-card event-card" id="card-ev_zvecan" draggable="true">Smrt u tvrđavi Zvečani</div></div>
+</div>
+
+<div id="legend">
+  <div class="leg-item"><div class="leg-swatch nemanjic"></div> Nemanjić vladar</div>
+  <div class="leg-item"><div class="leg-swatch sava"></div> Sveti Sava (životni vek)</div>
+  <div class="leg-item"><div class="leg-swatch vukanovic"></div> Vukanovići</div>
+  <div class="leg-item"><div class="leg-swatch lazar"></div> Knez Lazar</div>
+  <div class="leg-item"><div class="leg-swatch event"></div> Istorijski događaj</div>
+</div>
+</div>
+
+<div id="ghost"></div>
+
+<div id="result-overlay">
+  <div id="result-box">
+    <img id="result-coa" src="file:///C:/Users/Marko/Downloads/grb_nemanjica.png" alt="" style="display:block;margin:0 auto 10px;width:60px;height:60px;object-fit:contain;">
+    <h2>Kraj igre!</h2>
+    <div class="big-pct" id="fpct">0%</div>
+    <p class="detail" id="fdet"></p>
+    <p class="msg" id="fmsg"></p>
+    <div class="result-btns">
+      <button id="btn-again" onclick="restart()">↺ Igraj Ponovo</button>
+      <button id="btn-close" onclick="window.close()">✕ Zatvori</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+
+// Three century bands
+var BANDS = [
+  { id:'b1', start:1100, end:1200, label:'1100 – 1200' },
+  { id:'b2', start:1200, end:1300, label:'1200 – 1300' },
+  { id:'b3', start:1300, end:1400, label:'1300 – 1400' },
+];
+
+// Rulers — row:0 = main ruler row, row:1 = Sveti Sava parallel row
+var RULERS = [
+  { id:'vukanovic',  label:'Vukanovići',               from:1083, to:1166, type:'vukanovic', row:0 },
+  { id:'nemanja',    label:'Stefan Nemanja',            from:1166, to:1196, type:'nemanjic',  row:0 },
+  { id:'sava',       label:'Rastko Nem. / Sveti Sava',  from:1175, to:1236, type:'sava',      row:1 },
+  { id:'prvovencan', label:'Stefan Prvovenčani',        from:1196, to:1228, type:'nemanjic',  row:0 },
+  { id:'radoslav',   label:'Stefan Radoslav',           from:1228, to:1234, type:'nemanjic',  row:0 },
+  { id:'vladislav',  label:'Stefan Vladislav',          from:1234, to:1243, type:'nemanjic',  row:0 },
+  { id:'uros1',      label:'Stefan Uroš I',             from:1243, to:1276, type:'nemanjic',  row:0 },
+  { id:'dragutin',   label:'Stefan Dragutin',           from:1276, to:1282, type:'nemanjic',  row:0 },
+  { id:'milutin',    label:'Stefan Milutin',            from:1282, to:1321, type:'nemanjic',  row:0 },
+  { id:'decanski',   label:'Stefan Dečanski',           from:1321, to:1331, type:'nemanjic',  row:0 },
+  { id:'dusan',      label:'Stefan Dušan',              from:1331, to:1355, type:'nemanjic',  row:0 },
+  { id:'uros5',      label:'Stefan Uroš V Nejaki',      from:1355, to:1371, type:'nemanjic',  row:0 },
+  { id:'lazar',      label:'Knez Lazar Hrebeljanović',  from:1371, to:1389, type:'lazar',     row:0 },
+];
+
+// Events — band: which century row they belong to; alt: alternate height offset
+var EVENTS = [
+  // Band 1: 1100-1200 — 1168 is isolated; 1189/1190/1192/1198 are clustered
+  { id:'ev_pantina',   label:'Bitka kod Pantina',              year:1168, band:'b1', alt:0 },
+  { id:'ev_barbarosa', label:'Fridrih Barbarosa',              year:1189, band:'b1', alt:2 },
+  { id:'ev_morave',    label:'Bitka kod Morave',               year:1190, band:'b1', alt:0 },
+  { id:'ev_atos',      label:'Odlazak na Atos',                year:1192, band:'b1', alt:1 },
+  { id:'ev_hilandar',  label:'Osnivanje Hilandara',            year:1198, band:'b1', alt:2 },
+  // Band 2: 1200-1300 — 1217/1219 are close; 1282 is isolated
+  { id:'ev_vukan',     label:'Rat Vukana i Stefana',           year:1202, band:'b2', alt:0 },
+  { id:'ev_kruna',     label:'Krunisanje prvog kralja Srbije', year:1217, band:'b2', alt:2 },
+  { id:'ev_autokef',   label:'Autokefalnost / Arhiepiskopija', year:1219, band:'b2', alt:0 },
+  { id:'ev_dezevo',    label:'Sabor u Deževu',                 year:1282, band:'b2', alt:1 },
+  // Band 3: 1300-1400 — 1330/1331 are very close; 1345/1349 close; 1371/1389 spread
+  { id:'ev_velbuzdz',  label:'Bitka kod Velbužda',             year:1330, band:'b3', alt:2 },
+  { id:'ev_zvecan',    label:'Smrt u tvrđavi Zvečani',         year:1331, band:'b3', alt:0 },
+  { id:'ev_car',       label:'Proglašenje za cara',            year:1345, band:'b3', alt:2 },
+  { id:'ev_zakonik',   label:'Dušanov zakonik',                year:1349, band:'b3', alt:0 },
+  { id:'ev_marica',    label:'Marička bitka',                   year:1371, band:'b3', alt:1 },
+  { id:'ev_kosovo',    label:'Kosovska bitka',                  year:1389, band:'b3', alt:2 },
+];
+
+var TOTAL = RULERS.length + EVENTS.length; // 13 + 15 = 28
+var state = {};
+var dragging = null, draggingType = null;
+var ghost = document.getElementById('ghost');
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// Convert year to % within a band
+function yearPct(year, band) {
+  return (clamp(year, band.start, band.end) - band.start) / (band.end - band.start) * 100;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init() {
+  dragging = null; draggingType = null; state = {};
+  RULERS.forEach(function(r) { state[r.id] = { solved:false, attempts:0 }; });
+  EVENTS.forEach(function(e) { state[e.id] = { solved:false, attempts:0 }; });
+  buildTimeline();
+  buildCards();
+  updateUI();
+}
+
+// ── BUILD TIMELINE ────────────────────────────────────────────────────────────
+function buildTimeline() {
+  var wrap = document.getElementById('timeline-wrap');
+  wrap.innerHTML = '';
+
+  BANDS.forEach(function(band) {
+    var block = document.createElement('div');
+    block.className = 'century-block';
+    block.id = 'band-' + band.id;
+
+    var clabel = document.createElement('div');
+    clabel.className = 'century-label';
+    clabel.textContent = band.label;
+    block.appendChild(clabel);
+
+    var inner = document.createElement('div');
+    inner.className = 'tl-inner';
+    block.appendChild(inner);
+
+    // Events zone
+    var evZone = document.createElement('div');
+    evZone.className = 'events-zone';
+    evZone.id = 'evzone-' + band.id;
+    inner.appendChild(evZone);
+
+    // Axis row
+    var axRow = document.createElement('div');
+    axRow.className = 'axis-row';
+    var axLine = document.createElement('div');
+    axLine.className = 'axis-line';
+    axRow.appendChild(axLine);
+
+    // Year markers: start, mid, end
+    var markers = [band.start, band.start + 50, band.end];
+    markers.forEach(function(y) {
+      var pct = yearPct(y, band);
+      var m = document.createElement('div');
+      m.className = 'year-marker';
+      m.style.left = pct + '%';
+      var tick = document.createElement('div'); tick.className = 'year-tick';
+      var num  = document.createElement('div'); num.className  = 'year-num';
+      num.textContent = y;
+      m.appendChild(tick); m.appendChild(num);
+      axRow.appendChild(m);
+    });
+    inner.appendChild(axRow);
+
+    // Rulers zone
+    var rlZone = document.createElement('div');
+    rlZone.className = 'rulers-zone';
+    rlZone.id = 'rlzone-' + band.id;
+
+    // Determine how many rows needed
+    var maxRow = 0;
+    RULERS.forEach(function(r) {
+      if (rulerInBand(r, band) && r.row > maxRow) maxRow = r.row;
+    });
+    for (var ri = 0; ri <= maxRow; ri++) {
+      var rowWrap = document.createElement('div');
+      rowWrap.className = 'ruler-row-wrap';
+      rowWrap.id = 'rlrow-' + band.id + '-' + ri;
+      rlZone.appendChild(rowWrap);
+    }
+    inner.appendChild(rlZone);
+
+    wrap.appendChild(block);
+  });
+
+  // Now place ruler slots and event slots
+  RULERS.forEach(function(r) { placeRulerSlots(r); });
+  EVENTS.forEach(function(e) { placeEventSlot(e); });
+}
+
+function rulerInBand(r, band) {
+  return r.from < band.end && r.to > band.start;
+}
+
+// ── RULER SLOTS ───────────────────────────────────────────────────────────────
+function placeRulerSlots(r) {
+  var s = state[r.id];
+  BANDS.forEach(function(band) {
+    if (!rulerInBand(r, band)) return;
+
+    var visFrom = Math.max(r.from, band.start);
+    var visTo   = Math.min(r.to,   band.end);
+    var leftPct  = yearPct(visFrom, band);
+    var rightPct = yearPct(visTo,   band);
+    var widthPct = rightPct - leftPct;
+
+    var openLeft  = r.from < band.start;
+    var openRight = r.to   > band.end;
+
+    var rowWrap = document.getElementById('rlrow-' + band.id + '-' + r.row);
+    if (!rowWrap) return;
+
+    var slot = document.createElement('div');
+    slot.className = 'ruler-slot';
+    slot.id = 'rslot-' + r.id + '-' + band.id;
+    slot.style.left  = leftPct  + '%';
+    slot.style.width = widthPct + '%';
+
+    if (s.solved) {
+      applyRulerFilledStyle(slot, r, openLeft, openRight);
+    } else {
+      slot.classList.add('empty');
+      // Always show full real date span (e.g. 1083-1166 for Vukanovici, 1282-1321 for split rulers)
+      slot.textContent = r.from + ' \u2013 ' + r.to;
+      addRulerDropListeners(slot, r.id, band);
+    }
+
+    rowWrap.appendChild(slot);
+  });
+}
+
+function addRulerDropListeners(slot, rid, band) {
+  slot.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    if (draggingType === 'ruler') slot.classList.add('drag-over');
+  });
+  slot.addEventListener('dragleave', function() {
+    slot.classList.remove('drag-over');
+  });
+  slot.addEventListener('drop', function(e) {
+    e.preventDefault();
+    slot.classList.remove('drag-over');
+    if (draggingType === 'ruler') onDrop(rid, 'ruler');
+  });
+}
+
+function applyRulerFilledStyle(slot, r, openLeft, openRight) {
+  slot.classList.remove('empty');
+  slot.classList.add(r.type);
+  if (openLeft)  slot.classList.add('open-left');
+  if (openRight) slot.classList.add('open-right');
+  slot.innerHTML = '';
+
+  // Only show label if slot is wide enough
+  var pctWidth = parseFloat(slot.style.width);
+  if (pctWidth > 5) {
+    var span = document.createElement('span');
+    span.textContent = r.label;
+    slot.appendChild(span);
+    if (r.type === 'sava') {
+      var note = document.createElement('span');
+      note.className = 'sava-note';
+      note.textContent = '(životni vek)';
+      slot.appendChild(note);
+    }
+  }
+}
+
+function solveRulerSlots(rid) {
+  var r = RULERS.find(function(x){ return x.id===rid; });
+  BANDS.forEach(function(band) {
+    if (!rulerInBand(r, band)) return;
+    var slot = document.getElementById('rslot-' + rid + '-' + band.id);
+    if (!slot) return;
+
+    var visFrom  = Math.max(r.from, band.start);
+    var visTo    = Math.min(r.to,   band.end);
+    var openLeft  = r.from < band.start;
+    var openRight = r.to   > band.end;
+
+    // Remove old listeners by cloning
+    var newSlot = slot.cloneNode(false);
+    newSlot.className = 'ruler-slot pop-in';
+    newSlot.style.left  = slot.style.left;
+    newSlot.style.width = slot.style.width;
+    applyRulerFilledStyle(newSlot, r, openLeft, openRight);
+    slot.parentNode.replaceChild(newSlot, slot);
+  });
+}
+
+// ── EVENT SLOTS ───────────────────────────────────────────────────────────────
+// Three height levels to stagger nearby events
+var ALT_HEIGHTS = [155, 100, 48]; // px from bottom of events-zone (tall, mid, short)
+
+function placeEventSlot(ev) {
+  var s    = state[ev.id];
+  var band = BANDS.find(function(b){ return b.id === ev.band; });
+  var zone = document.getElementById('evzone-' + band.id);
+  if (!zone) return;
+
+  var pct = yearPct(ev.year, band);
+  var h   = ALT_HEIGHTS[ev.alt];
+
+  var col = document.createElement('div');
+  col.className = 'event-col';
+  col.style.left = pct + '%';
+  col.style.height = (h + 2) + 'px';
+  col.style.zIndex = '3';
+  col.style.pointerEvents = 'none'; // col itself ignores mouse
+  col.dataset.evid = ev.id;
+
+  var box = document.createElement('div');
+  box.className = 'event-box';
+  box.id = 'eslot-' + ev.id;
+  box.style.pointerEvents = 'auto'; // only box catches mouse
+  box.style.position = 'relative';
+  box.style.zIndex = '5';
+
+  if (s.solved) {
+    box.classList.add('filled');
+    box.textContent = ev.label;
+  } else {
+    box.textContent = ev.year;
+    box.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (draggingType === 'event') box.classList.add('drag-over');
+    });
+    box.addEventListener('dragleave', function(e) {
+      if (!box.contains(e.relatedTarget)) box.classList.remove('drag-over');
+    });
+    box.addEventListener('drop', function(e) {
+      e.preventDefault();
+      box.classList.remove('drag-over');
+      if (draggingType === 'event') onDrop(ev.id, 'event');
+    });
+  }
+
+  // connector line height = total col height minus box height minus dot
+  var lineH = h - 36 - 8; // 36=box, 8=dot
+  var line = document.createElement('div');
+  line.className = 'event-line';
+  line.style.height = Math.max(2, lineH) + 'px';
+
+  var dot = document.createElement('div');
+  dot.className = 'event-dot';
+
+  col.appendChild(box);
+  col.appendChild(line);
+  col.appendChild(dot);
+  zone.appendChild(col);
+}
+
+function solveEventSlot(eid) {
+  var ev  = EVENTS.find(function(x){ return x.id===eid; });
+  var box = document.getElementById('eslot-' + eid);
+  if (!box) return;
+  box.classList.add('filled', 'pop-in');
+  box.textContent = ev.label;
+  // Remove listeners
+  var newBox = box.cloneNode(true);
+  box.parentNode.replaceChild(newBox, box);
+}
+
+// ── CARDS ─────────────────────────────────────────────────────────────────────
+function buildCards() {
+  var pL = document.getElementById('panel-left');
+  var pR = document.getElementById('panel-right');
+  pL.querySelectorAll('.name-card').forEach(function(c){ c.remove(); });
+  pR.querySelectorAll('.name-card').forEach(function(c){ c.remove(); });
+
+  shuffle(RULERS.filter(function(r){ return !state[r.id].solved; }))
+    .forEach(function(r){ pL.appendChild(makeCard(r.id, r.label, 'ruler')); });
+
+  shuffle(EVENTS.filter(function(e){ return !state[e.id].solved; }))
+    .forEach(function(e){ pR.appendChild(makeCard(e.id, e.label, 'event')); });
+}
+
+function makeCard(id, label, type) {
+  var c = document.createElement('div');
+  c.className = 'name-card ' + type + '-card';
+  c.id = 'card-' + id;
+  c.textContent = label;
+  c.draggable = true;
+  c.addEventListener('dragstart', function(e) {
+    dragging = id; draggingType = type;
+    ghost.textContent = label;
+    ghost.className = 'ghost-' + type;
+    ghost.style.display = 'block';
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(function(){ c.classList.add('dragging'); }, 0);
+  });
+  c.addEventListener('dragend', function() {
+    c.classList.remove('dragging');
+    ghost.style.display = 'none';
+    dragging = null; draggingType = null;
+  });
+  return c;
+}
+
+document.addEventListener('dragover', function(e) {
+  ghost.style.left = e.clientX + 'px';
+  ghost.style.top  = e.clientY + 'px';
+});
+
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length-1; i > 0; i--) {
+    var j = Math.floor(Math.random()*(i+1));
+    var t = a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+
+// ── DROP ──────────────────────────────────────────────────────────────────────
+function onDrop(targetId, targetType) {
+  if (!dragging || draggingType !== targetType) return;
+  var s = state[targetId];
+  if (s.solved) return;
+
+  if (dragging === targetId) {
+    // Correct!
+    s.solved = true;
+    var card = document.getElementById('card-' + dragging);
+    if (card) card.remove();
+    if (targetType === 'ruler') solveRulerSlots(dragging);
+    else                        solveEventSlot(dragging);
+  } else {
+    // Wrong
+    s.attempts++;
+    flashWrong(targetId, targetType);
+  }
+
+  dragging = null; draggingType = null;
+  ghost.style.display = 'none';
+  updateUI(); checkWin();
+}
+
+function flashWrong(id, type) {
+  var els = [];
+  if (type === 'ruler') {
+    BANDS.forEach(function(b) {
+      var sl = document.getElementById('rslot-' + id + '-' + b.id);
+      if (sl) els.push(sl);
+    });
+  } else {
+    var sl = document.getElementById('eslot-' + id);
+    if (sl) els.push(sl);
+  }
+  els.forEach(function(el) {
+    el.classList.add('wrong-flash');
+    setTimeout(function(){ el.classList.remove('wrong-flash'); }, 450);
+  });
+}
+
+// ── SCORING ───────────────────────────────────────────────────────────────────
+function currentScore() {
+  var total = 0;
+  RULERS.concat(EVENTS).forEach(function(x) {
+    total += Math.max(0, 100 - state[x.id].attempts * 34);
+  });
+  return Math.round(total / TOTAL);
+}
+
+function updateUI() {
+  var solved = 0;
+  RULERS.concat(EVENTS).forEach(function(x){ if(state[x.id].solved) solved++; });
+  document.getElementById('pv').textContent = solved + ' / ' + TOTAL;
+  document.getElementById('sv').textContent = currentScore() + '%';
+}
+
+function checkWin() {
+  var all = RULERS.concat(EVENTS);
+  if (!all.every(function(x){ return state[x.id].solved; })) return;
+  var total = 0;
+  all.forEach(function(x){ total += Math.max(0, 100 - state[x.id].attempts * 34); });
+  var avg = Math.round(total / all.length);
+  setTimeout(function() {
+    document.getElementById('fpct').textContent = avg + '%';
+    document.getElementById('fdet').textContent = 'Prosečan rezultat na osnovu broja pokušaja.';
+    document.getElementById('fmsg').textContent =
+      avg===100 ? 'Savršeno! Pravi istoričar Srbije!' :
+      avg>=80   ? 'Odlično poznavanje istorije!'      :
+      avg>=55   ? 'Dobro! Ima još prostora za napredak.' :
+                  'Prouči malo više o Nemanjićima!';
+    document.getElementById('result-overlay').classList.add('show');
+  }, 800);
+}
+
+function restart() {
+  document.getElementById('result-overlay').classList.remove('show');
+  init();
+}
+
+init();
+</script>
+
+
+</body></html>
