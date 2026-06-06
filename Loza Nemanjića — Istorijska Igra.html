@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<!-- saved from url=(0054)file:///C:/Users/Marko/Downloads/nemanjici_igra_5.html -->
+<html lang="sr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Loza Nemanjića — Istorijska Igra</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Calibri', 'Segoe UI', sans-serif; background: #dce8f5; min-height: 100vh; overflow-x: hidden; }
+#page { display: flex; flex-direction: column; height: 100vh; }
+
+#topbar {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(90deg, #7a0a0a 0%, #a01010 40%, #7a0a0a 100%);
+  padding: 6px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); z-index: 10; min-height: 56px;
+}
+#topbar-left { display: flex; align-items: center; gap: 12px; }
+#topbar-coa { height: 44px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+#topbar-titles h1 {
+  color: #ffd966; font-size: 18px; font-weight: 700; letter-spacing: 1px;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6); font-family: 'Palatino Linotype', Palatino, serif;
+}
+#topbar-titles h2 { color: #f0c8a0; font-size: 11px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; }
+.stats { display: flex; gap: 12px; align-items: center; }
+.stat { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,220,100,0.3); border-radius: 6px; padding: 4px 14px; color: #fff; font-size: 12px; }
+.stat b { color: #ffd966; font-size: 15px; }
+
+#main { flex: 1; display: flex; overflow: hidden; }
+
+#panel-left {
+  flex-shrink: 0; width: 168px;
+  background: linear-gradient(180deg, #c8dcf0 0%, #b8ccde 100%);
+  border-right: 2px solid #8aafcf; padding: 8px 6px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 5px;
+}
+#panel-left h3 {
+  font-size: 10px; color: #1e3a5a; font-weight: 700; text-align: center; margin-bottom: 3px;
+  text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #8aafcf; padding-bottom: 4px;
+}
+
+#tree-scroll { flex: 1; overflow: auto; background: #dce8f5; position: relative; }
+#tree-scroll::before {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 420px; height: 420px; background-image: url('grb_nemanjica.png');
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  opacity: 0.07; pointer-events: none; z-index: 0;
+}
+#tree-wrap { position: relative; width: 860px; height: 920px; margin: 0 auto; z-index: 1; }
+#conn-svg { position: absolute; top: 0; left: 0; width: 860px; height: 920px; pointer-events: none; z-index: 1; }
+#nodes-layer { position: absolute; top: 0; left: 0; width: 860px; height: 920px; z-index: 2; }
+
+.t-node { position: absolute; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); }
+.node-box {
+  width: 138px; min-height: 38px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11.5px; font-weight: 700; text-align: center; padding: 5px 6px; line-height: 1.3;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.node-box.empty-slot { background: #e4f0fa; border: 2px dashed #6aaad8; color: #5a8ab0; font-size: 13px; font-weight: 600; }
+.node-box.empty-slot.drag-over { background: #b0d4f0; border-color: #2a7ac0; border-style: solid; }
+.node-box.ruler { background: linear-gradient(160deg, #f9b89a 0%, #f0906a 100%); border: 1.5px solid #c07050; color: #4a1a08; }
+.node-box.saint { background: linear-gradient(160deg, #c8e890 0%, #88cc44 100%); border: 1.5px solid #4a8020; color: #1a3808; }
+.node-box.neutral { background: linear-gradient(160deg, #f0f0f0 0%, #d4d4d4 100%); border: 1.5px solid #909090; color: #303030; }
+.node-box.pop-in { animation: popIn 0.35s ease; }
+.node-box.shake { animation: shake 0.28s ease; }
+@keyframes popIn { 0%{transform:scale(0.78);opacity:0.4;} 100%{transform:scale(1);opacity:1;} }
+@keyframes shake { 0%,100%{margin-left:0;} 25%{margin-left:-7px;} 75%{margin-left:7px;} }
+
+.spouse-area {
+  margin-top: 2px; font-size: 9.5px; color: #2a1808; text-align: center; line-height: 1.5;
+  background: rgba(255,255,255,0.8); border-radius: 4px; padding: 1px 4px;
+  max-width: 150px; position: relative; z-index: 5;
+}
+.spouse-row { display: flex; align-items: center; gap: 2px; justify-content: center; }
+.heart { color: #c0304a; font-size: 10px; }
+
+.name-card {
+  background: linear-gradient(160deg, #fff8f0 0%, #ffe4c8 100%);
+  border: 1.5px solid #c09060; border-radius: 7px; padding: 6px 7px;
+  font-size: 11px; font-weight: 700; color: #4a2010; cursor: grab;
+  text-align: center; line-height: 1.3; box-shadow: 0 2px 4px rgba(0,0,0,0.13);
+  transition: transform 0.1s, box-shadow 0.1s; user-select: none;
+}
+.name-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.22); }
+.name-card.dragging { opacity: 0.3; cursor: grabbing; }
+
+#ghost {
+  position: fixed; pointer-events: none; z-index: 9999;
+  background: linear-gradient(160deg, #fff8f0, #ffe4c8);
+  border: 2px solid #d08030; border-radius: 7px; padding: 5px 12px;
+  font-size: 12px; font-weight: 700; color: #4a2010;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35); display: none;
+  white-space: nowrap; transform: translate(-50%, -50%);
+  font-family: 'Calibri', 'Segoe UI', sans-serif;
+}
+
+#legend {
+  flex-shrink: 0; display: flex; gap: 18px; align-items: center; justify-content: center;
+  padding: 5px 16px; background: linear-gradient(90deg, #7a0a0a, #a01010, #7a0a0a);
+  font-size: 11px; color: #f0d0a0;
+}
+.leg-item { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.leg-dot.ruler { background: #f0906a; border: 1px solid #c07050; }
+.leg-dot.saint { background: #88cc44; border: 1px solid #4a8020; }
+.leg-dot.neutral { background: #d4d4d4; border: 1px solid #909090; }
+
+#result-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+  z-index: 200; align-items: center; justify-content: center;
+}
+#result-overlay.show { display: flex; }
+#result-box {
+  background: #f5ede0; border: 3px solid #8a0a0a; border-radius: 16px;
+  padding: 30px 56px; text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5); max-width: 440px;
+}
+#result-coa { display: block; margin: 0 auto 10px; width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
+#result-box h2 { color: #8a0a0a; font-size: 22px; margin-bottom: 4px; font-family: 'Palatino Linotype', serif; }
+.big-pct { font-size: 70px; font-weight: 700; color: #8a0a0a; line-height: 1; margin: 6px 0; }
+.detail { color: #4a3010; font-size: 13px; margin-bottom: 4px; }
+.msg { color: #2c5f8a; font-size: 15px; font-weight: 700; margin-bottom: 22px; }
+.result-btns { display: flex; gap: 14px; justify-content: center; }
+.result-btns button { border: none; border-radius: 8px; padding: 11px 28px; font-size: 14px; cursor: pointer; font-family: inherit; font-weight: 700; }
+#btn-again { background: #8a0a0a; color: #ffd966; }
+#btn-again:hover { background: #6a0808; }
+#btn-close { background: #3a3a3a; color: #fff; }
+#btn-close:hover { background: #1a1a1a; }
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: #c8dcf0; }
+::-webkit-scrollbar-thumb { background: #6aaad8; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="page">
+  <div id="topbar">
+    <div id="topbar-left">
+      <img id="topbar-coa" src="file:///C:/Users/Marko/Downloads/grb_nemanjica.png" alt="Grb Nemanjića">
+      <div id="topbar-titles">
+        <h1>Loza Nemanjića</h1>
+        <h2>Istorijska igra — Srednji vek Srbije</h2>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat">Postavljeno: <b id="pv">0 / 18</b>&nbsp;/&nbsp;18</div>
+      <div class="stat">Trenutni rezultat: <b id="sv">100%</b></div>
+    </div>
+  </div>
+  <div id="main">
+    <div id="panel-left"><h3>Imena</h3><div class="name-card" id="card-vukan" draggable="true">Vukan (vladar Zete)</div><div class="name-card" id="card-stefan_radoslav" draggable="true">Stefan Radoslav</div><div class="name-card" id="card-stracimir" draggable="true">Stracimir</div><div class="name-card" id="card-stefan_uros5" draggable="true">Stefan Uros V Nejaki</div><div class="name-card" id="card-stefan_vladislav" draggable="true">Stefan Vladislav</div><div class="name-card" id="card-tihomir" draggable="true">Tihomir</div><div class="name-card" id="card-stefan_nemanja" draggable="true">Stefan Nemanja</div><div class="name-card" id="card-stefan_decanski" draggable="true">Stefan Decanski</div><div class="name-card" id="card-miroslav" draggable="true">Miroslav</div><div class="name-card" id="card-stefan_uros1" draggable="true">Stefan Uros I</div><div class="name-card" id="card-vladislav" draggable="true">Vladislav</div><div class="name-card" id="card-stefan_prv" draggable="true">Stefan Prvovencani</div><div class="name-card" id="card-rastko" draggable="true">Rastko Nemanjic</div><div class="name-card" id="card-predislav" draggable="true">Predislav / Sava II</div><div class="name-card" id="card-zavida" draggable="true">Zavida (Vukanovic)</div><div class="name-card" id="card-stefan_dragutin" draggable="true">Stefan Dragutin</div><div class="name-card" id="card-stefan_dusan" draggable="true">Stefan Dusan</div><div class="name-card" id="card-stefan_milutin" draggable="true">Stefan Milutin</div></div>
+    <div id="tree-scroll">
+      <div id="tree-wrap">
+        <svg id="conn-svg"><path d="M430,52 C430,76 210,76 210,100" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M430,52 C430,76 358,76 358,100" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M430,52 C430,76 506,76 506,100" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M430,52 C430,76 640,76 640,100" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M358,138 C358,179 200,179 200,220" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M358,138 C358,179 392,179 392,220" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M358,138 C358,179 628,179 628,220" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M392,258 C392,301.5 162,301.5 162,345" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M392,258 C392,301.5 330,301.5 330,345" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M392,258 C392,301.5 490,301.5 490,345" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M392,258 C392,301.5 668,301.5 668,345" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M490,383 C490,424 368,424 368,465" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M490,383 C490,424 546,424 546,465" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M368,503 C368,541.5 368,541.5 368,580" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M546,503 C546,541.5 546,541.5 546,580" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M546,618 C546,651.5 546,651.5 546,685" fill="none" stroke="#4488bb" stroke-width="2"></path><path d="M546,723 C546,761.5 546,761.5 546,800" fill="none" stroke="#4488bb" stroke-width="2"></path></svg>
+        <div id="nodes-layer"><div class="t-node" id="tw-zavida" style="left: 430px; top: 14px;"><div class="node-box empty-slot" id="nb-zavida">~1083</div></div><div class="t-node" id="tw-tihomir" style="left: 210px; top: 100px;"><div class="node-box empty-slot" id="nb-tihomir">~1105</div></div><div class="t-node" id="tw-stefan_nemanja" style="left: 358px; top: 100px;"><div class="node-box empty-slot" id="nb-stefan_nemanja">~1113</div></div><div class="t-node" id="tw-stracimir" style="left: 506px; top: 100px;"><div class="node-box empty-slot" id="nb-stracimir">~1115</div></div><div class="t-node" id="tw-miroslav" style="left: 640px; top: 100px;"><div class="node-box empty-slot" id="nb-miroslav">~1120</div></div><div class="t-node" id="tw-vukan" style="left: 200px; top: 220px;"><div class="node-box empty-slot" id="nb-vukan">~1150</div></div><div class="t-node" id="tw-stefan_prv" style="left: 392px; top: 220px;"><div class="node-box empty-slot" id="nb-stefan_prv">~1165</div></div><div class="t-node" id="tw-rastko" style="left: 628px; top: 220px;"><div class="node-box empty-slot" id="nb-rastko">~1175</div></div><div class="t-node" id="tw-stefan_radoslav" style="left: 162px; top: 345px;"><div class="node-box empty-slot" id="nb-stefan_radoslav">~1192</div></div><div class="t-node" id="tw-stefan_vladislav" style="left: 330px; top: 345px;"><div class="node-box empty-slot" id="nb-stefan_vladislav">~1198</div></div><div class="t-node" id="tw-stefan_uros1" style="left: 490px; top: 345px;"><div class="node-box empty-slot" id="nb-stefan_uros1">~1203</div></div><div class="t-node" id="tw-predislav" style="left: 668px; top: 345px;"><div class="node-box empty-slot" id="nb-predislav">~1209</div></div><div class="t-node" id="tw-stefan_dragutin" style="left: 368px; top: 465px;"><div class="node-box empty-slot" id="nb-stefan_dragutin">~1254</div></div><div class="t-node" id="tw-stefan_milutin" style="left: 546px; top: 465px;"><div class="node-box empty-slot" id="nb-stefan_milutin">~1253</div></div><div class="t-node" id="tw-vladislav" style="left: 368px; top: 580px;"><div class="node-box empty-slot" id="nb-vladislav">~1277</div></div><div class="t-node" id="tw-stefan_decanski" style="left: 546px; top: 580px;"><div class="node-box empty-slot" id="nb-stefan_decanski">~1276</div></div><div class="t-node" id="tw-stefan_dusan" style="left: 546px; top: 685px;"><div class="node-box empty-slot" id="nb-stefan_dusan">~1308</div></div><div class="t-node" id="tw-stefan_uros5" style="left: 546px; top: 800px;"><div class="node-box empty-slot" id="nb-stefan_uros5">~1336</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div id="legend">
+    <div class="leg-item"><div class="leg-dot ruler"></div> Vladar Srbije</div>
+    <div class="leg-item"><div class="leg-dot saint"></div> Svetac / Monah</div>
+    <div class="leg-item"><div class="leg-dot neutral"></div> Član dinastije (nije vladao)</div>
+  </div>
+</div>
+
+<div id="ghost"></div>
+
+<div id="result-overlay">
+  <div id="result-box">
+    <img id="result-coa" src="file:///C:/Users/Marko/Downloads/grb_nemanjica.png" alt="Grb">
+    <h2>Kraj igre!</h2>
+    <div class="big-pct" id="fpct">0%</div>
+    <p class="detail" id="fdet"></p>
+    <p class="msg" id="fmsg"></p>
+    <div class="result-btns">
+      <button id="btn-again" onclick="restart()">↺ Igraj Ponovo</button>
+      <button id="btn-close" onclick="window.close()">✕ Zatvori</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const NODES = [
+  { id:'zavida',           label:'Zavida (Vukanovic)',   birth:'~1083', x:430, y:14,  type:'neutral', spouse:[] },
+  { id:'tihomir',          label:'Tihomir',              birth:'~1105', x:210, y:100, type:'ruler',   spouse:[] },
+  { id:'stefan_nemanja',   label:'Stefan Nemanja',       birth:'~1113', x:358, y:100, type:'ruler',   spouse:['Anastasija'] },
+  { id:'stracimir',        label:'Stracimir',            birth:'~1115', x:506, y:100, type:'neutral', spouse:[] },
+  { id:'miroslav',         label:'Miroslav',             birth:'~1120', x:640, y:100, type:'neutral', spouse:[] },
+  { id:'vukan',            label:'Vukan (vladar Zete)',  birth:'~1150', x:200, y:220, type:'ruler',   spouse:['Madarska princeza'] },
+  { id:'stefan_prv',       label:'Stefan Prvovencani',   birth:'~1165', x:392, y:220, type:'ruler',   spouse:['Evdokija (Vizantija)','Ana (Venecija)'] },
+  { id:'rastko',           label:'Rastko Nemanjic',      birth:'~1175', x:628, y:220, type:'saint',   spouse:[] },
+  { id:'stefan_radoslav',  label:'Stefan Radoslav',      birth:'~1192', x:162, y:345, type:'ruler',   spouse:['Ana Komnina (Epirska despotovina)'] },
+  { id:'stefan_vladislav', label:'Stefan Vladislav',     birth:'~1198', x:330, y:345, type:'ruler',   spouse:['Belosava (Bugarska)'] },
+  { id:'stefan_uros1',     label:'Stefan Uros I',        birth:'~1203', x:490, y:345, type:'ruler',   spouse:['Jelena Anzujska (Francuska)'] },
+  { id:'predislav',        label:'Predislav / Sava II',  birth:'~1209', x:668, y:345, type:'saint',   spouse:[] },
+  { id:'stefan_dragutin',  label:'Stefan Dragutin',      birth:'~1254', x:368, y:465, type:'ruler',   spouse:['Katalina (Madarska)'] },
+  { id:'stefan_milutin',   label:'Stefan Milutin',       birth:'~1253', x:546, y:465, type:'ruler',   spouse:['Jelena','Jelisaveta','Ana','Simonida'] },
+  { id:'vladislav',        label:'Vladislav',            birth:'~1277', x:368, y:580, type:'neutral', spouse:[] },
+  { id:'stefan_decanski',  label:'Stefan Decanski',      birth:'~1276', x:546, y:580, type:'ruler',   spouse:['Teodora (Bugarska)'] },
+  { id:'stefan_dusan',     label:'Stefan Dusan',         birth:'~1308', x:546, y:685, type:'ruler',   spouse:['Jelena (Bugarska)'] },
+  { id:'stefan_uros5',     label:'Stefan Uros V Nejaki', birth:'~1336', x:546, y:800, type:'ruler',   spouse:[] },
+];
+
+const CONNS = [
+  ['zavida','tihomir'],['zavida','stefan_nemanja'],['zavida','stracimir'],['zavida','miroslav'],
+  ['stefan_nemanja','vukan'],['stefan_nemanja','stefan_prv'],['stefan_nemanja','rastko'],
+  ['stefan_prv','stefan_radoslav'],['stefan_prv','stefan_vladislav'],['stefan_prv','stefan_uros1'],['stefan_prv','predislav'],
+  ['stefan_uros1','stefan_dragutin'],['stefan_uros1','stefan_milutin'],
+  ['stefan_dragutin','vladislav'],
+  ['stefan_milutin','stefan_decanski'],
+  ['stefan_decanski','stefan_dusan'],
+  ['stefan_dusan','stefan_uros5'],
+];
+
+let state = {}, dragging = null;
+const ghost = document.getElementById('ghost');
+
+function init() {
+  dragging = null; state = {};
+  NODES.forEach(function(n) { state[n.id] = { solved: false, attempts: 0 }; });
+  drawConns(); renderNodes(); buildCards(); updateUI();
+}
+
+function drawConns() {
+  var svg = document.getElementById('conn-svg');
+  svg.innerHTML = '';
+  CONNS.forEach(function(pair) {
+    var a = pair[0], b = pair[1];
+    var na = NODES.find(function(x){ return x.id===a; });
+    var nb = NODES.find(function(x){ return x.id===b; });
+    if (!na||!nb) return;
+    var ax=na.x, ay=na.y+38, bx=nb.x, by=nb.y, my=(ay+by)/2;
+    var p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M'+ax+','+ay+' C'+ax+','+my+' '+bx+','+my+' '+bx+','+by);
+    p.setAttribute('fill','none'); p.setAttribute('stroke','#4488bb'); p.setAttribute('stroke-width','2');
+    svg.appendChild(p);
+  });
+}
+
+function renderNodes() {
+  var layer = document.getElementById('nodes-layer');
+  layer.innerHTML = '';
+  NODES.forEach(function(n) {
+    var s = state[n.id];
+    var wrap = document.createElement('div');
+    wrap.className = 't-node';
+    wrap.style.left = n.x+'px'; wrap.style.top = n.y+'px';
+    wrap.id = 'tw-'+n.id;
+    var box = document.createElement('div');
+    box.className = 'node-box'; box.id = 'nb-'+n.id;
+    if (s.solved) {
+      box.classList.add(n.type);
+      box.textContent = n.label;
+    } else {
+      box.classList.add('empty-slot');
+      box.textContent = n.birth;
+      box.addEventListener('dragover', function(e){ e.preventDefault(); box.classList.add('drag-over'); });
+      box.addEventListener('dragleave', function(){ box.classList.remove('drag-over'); });
+      box.addEventListener('drop', function(e){ e.preventDefault(); box.classList.remove('drag-over'); onDrop(n.id); });
+    }
+    wrap.appendChild(box);
+    if (s.solved && n.spouse && n.spouse.length) {
+      var sa = document.createElement('div');
+      sa.className = 'spouse-area';
+      n.spouse.forEach(function(sp) {
+        var row = document.createElement('div');
+        row.className = 'spouse-row';
+        var heart = document.createElement('span');
+        heart.className = 'heart'; heart.textContent = '\u2665';
+        var txt = document.createTextNode(' '+sp);
+        row.appendChild(heart); row.appendChild(txt);
+        sa.appendChild(row);
+      });
+      wrap.appendChild(sa);
+    }
+    layer.appendChild(wrap);
+  });
+}
+
+function buildCards() {
+  var panel = document.getElementById('panel-left');
+  var existing = panel.querySelectorAll('.name-card');
+  existing.forEach(function(c){ c.remove(); });
+  var unsolved = NODES.filter(function(n){ return !state[n.id].solved; });
+  unsolved.sort(function(){ return Math.random()-0.5; });
+  unsolved.forEach(function(n) {
+    var c = document.createElement('div');
+    c.className = 'name-card'; c.id = 'card-'+n.id;
+    c.textContent = n.label; c.draggable = true;
+    c.addEventListener('dragstart', function(e){
+      dragging = n.id; ghost.textContent = n.label;
+      ghost.style.display = 'block'; e.dataTransfer.effectAllowed = 'move';
+      setTimeout(function(){ c.classList.add('dragging'); }, 0);
+    });
+    c.addEventListener('dragend', function(){
+      c.classList.remove('dragging'); ghost.style.display='none'; dragging=null;
+    });
+    panel.appendChild(c);
+  });
+}
+
+document.addEventListener('dragover', function(e){
+  ghost.style.left = e.clientX+'px'; ghost.style.top = e.clientY+'px';
+});
+
+function onDrop(targetId) {
+  if (!dragging) return;
+  var s = state[targetId];
+  if (s.solved) return;
+  if (dragging === targetId) {
+    s.solved = true;
+    var card = document.getElementById('card-'+dragging);
+    if (card) card.remove();
+    renderNodeSolved(targetId);
+  } else {
+    s.attempts++;
+    var box = document.getElementById('nb-'+targetId);
+    box.classList.add('shake');
+    setTimeout(function(){ box.classList.remove('shake'); }, 320);
+  }
+  dragging = null; ghost.style.display = 'none';
+  updateUI(); checkWin();
+}
+
+function renderNodeSolved(id) {
+  var n = NODES.find(function(x){ return x.id===id; });
+  var wrap = document.getElementById('tw-'+id);
+  wrap.innerHTML = '';
+  var box = document.createElement('div');
+  box.className = 'node-box '+n.type+' pop-in';
+  box.textContent = n.label;
+  wrap.appendChild(box);
+  if (n.spouse && n.spouse.length) {
+    var sa = document.createElement('div');
+    sa.className = 'spouse-area';
+    n.spouse.forEach(function(sp) {
+      var row = document.createElement('div');
+      row.className = 'spouse-row';
+      var heart = document.createElement('span');
+      heart.className = 'heart'; heart.textContent = '\u2665';
+      var txt = document.createTextNode(' '+sp);
+      row.appendChild(heart); row.appendChild(txt);
+      sa.appendChild(row);
+    });
+    wrap.appendChild(sa);
+  }
+}
+
+function currentScore() {
+  // Include every node: solved ones use their final attempt count,
+  // unsolved ones use their current wrong-attempt count as a penalty preview.
+  var total = 0;
+  NODES.forEach(function(n){ total += Math.max(0, 100 - state[n.id].attempts * 34); });
+  return Math.round(total / NODES.length);
+}
+
+function updateUI() {
+  var solved = NODES.filter(function(n){ return state[n.id].solved; }).length;
+  document.getElementById('pv').textContent = solved+' / '+NODES.length;
+  document.getElementById('sv').textContent = currentScore()+'%';
+}
+
+function checkWin() {
+  var allDone = NODES.every(function(n){ return state[n.id].solved; });
+  if (!allDone) return;
+  var total = 0;
+  NODES.forEach(function(n){ total += Math.max(0, 100 - state[n.id].attempts * 34); });
+  var avg = Math.round(total / NODES.length);
+  setTimeout(function(){
+    document.getElementById('fpct').textContent = avg+'%';
+    document.getElementById('fdet').textContent = 'Prosecni rezultat na osnovu broja pokusaja po imenu.';
+    var msg = avg===100 ? 'Savrseno! Pravi istoricar Srbije!' :
+              avg>=80  ? 'Odlicno poznavanje istorije!' :
+              avg>=55  ? 'Dobro! Ima jos prostora za napredak.' :
+                         'Prouci malo vise o Nemanjicima!';
+    document.getElementById('fmsg').textContent = msg;
+    document.getElementById('result-overlay').classList.add('show');
+  }, 800);
+}
+
+function restart() {
+  document.getElementById('result-overlay').classList.remove('show');
+  init();
+}
+
+init();
+</script>
+
+
+</body></html>
